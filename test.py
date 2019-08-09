@@ -17,36 +17,44 @@ def region_of_interest(image):
     cv2.fillPoly(mask, triangle, 255)
     masked_image = cv2.bitwise_and(image, mask)
     return masked_image
-def display_lines(image, lines):
+
+def finding_minimap(image, lines):
     #get the hight,lenth of the image.
     y, x, c = image.shape
     #initialize the boudary coordinates(outside of the image)
-    ver_boudary = [[x,0],[x,y]]
-    hor_boudary = [[0,y],[x,y]]
-    line_image = np.zeros_like(image)
+    ver_boudary = x
+    mapcentre_x = x
+    hor_boudary = y
+    mapcentre_y = y
+    map = np.zeros_like(image)
     if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line.reshape(4)
             #get verdical/horizontal lines in the mini map
             if (abs(x1-x2)<3):#verdical boudary
                 xmin=min(x1,x2)
-                if (xmin<ver_boudary[0][0]):
-                    ver_boudary[0][0]=xmin
-                    ver_boudary[1][0]=xmin
+                if (xmin<ver_boudary):
+                    ver_boudary=xmin
+                    mapcentre_x = int((xmin+x)/2)
             if (abs(y1-y2)<3):#horizontal boudary
                 ymin=min(y1,y2)
-                if (ymin<hor_boudary[0][1]):
-                    hor_boudary[0][1]=ymin
-                    hor_boudary[1][1]=ymin
+                if (ymin<hor_boudary):
+                    hor_boudary=ymin
+                    mapcentre_y = int((ymin+y)/2)
     #display the boudaries on the map
     #horizontal
-    cv2.line(line_image, (hor_boudary[0][0], hor_boudary[0][1]), (hor_boudary[1][0], hor_boudary[1][1]), (0, 128, 255), 5)
+    cv2.line(map, (ver_boudary, hor_boudary), (x, hor_boudary), (0, 255, 0), 3)
     #verdical
-    cv2.line(line_image, (ver_boudary[0][0], ver_boudary[0][1]), (ver_boudary[1][0], ver_boudary[1][1]), (0, 255, 128), 5)
-    return line_image
+    cv2.line(map, (ver_boudary, hor_boudary), (ver_boudary, y), (0, 255, 0), 3)
+    
+    #display the centre of the map
+    centre=(mapcentre_x,mapcentre_y)
+    print(centre)
+    cv2.circle(map, centre, 5, (0,255,255), -2)
+    return map
 
-lane_image = cv2.imread('./testImage/replay-tool.jpg')
-canny = CannyEdge(lane_image)#edge detection
+image = cv2.imread('./testImage/replay-tool.jpg')
+canny = CannyEdge(image)#edge detection
 cropped_Image = region_of_interest(canny)#get the mini map area
 
 #set up hough transformation parameters
@@ -56,9 +64,13 @@ threshold = 80
 #Hough Transformation
 lines = cv2.HoughLinesP(cropped_Image,rho, theta, threshold, np.array ([]), minLineLength=10, maxLineGap=5)
 #Get the lines
-line_image = display_lines(lane_image, lines)
+map_info = finding_minimap(image, lines)
 #Display the minmap edges/boudaries in the original pic
-combo_image = cv2.addWeighted(line_image, 0.8, lane_image, 1, 1)
+combo_image = cv2.addWeighted(map_info, 0.8, image, 1, 1)
 #showing the image
+'''
 cv2.imshow('result',combo_image)
 cv2.waitKey(0)
+'''
+plt.imshow(combo_image)
+plt.show()
