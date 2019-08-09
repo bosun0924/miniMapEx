@@ -18,17 +18,31 @@ def region_of_interest(image):
     masked_image = cv2.bitwise_and(image, mask)
     return masked_image
 def display_lines(image, lines):
-    hor_boudary = []
-    ver_boudary = []
+    #get the hight,lenth of the image.
+    y, x, c = image.shape
+    #initialize the boudary coordinates(outside of the image)
+    ver_boudary = [[x,0],[x,y]]
+    hor_boudary = [[0,y],[x,y]]
     line_image = np.zeros_like(image)
     if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line.reshape(4)
             #get verdical/horizontal lines in the mini map
-            if (abs(x1-x2)<3):
-                
-            else if (abs(y1-y2)<3):
-            #cv2.line(line_image, (x1, y1), (x2, y2), (255, 255, 255), 1)
+            if (abs(x1-x2)<3):#verdical boudary
+                xmin=min(x1,x2)
+                if (xmin<ver_boudary[0][0]):
+                    ver_boudary[0][0]=xmin
+                    ver_boudary[1][0]=xmin
+            if (abs(y1-y2)<3):#horizontal boudary
+                ymin=min(y1,y2)
+                if (ymin<hor_boudary[0][1]):
+                    hor_boudary[0][1]=ymin
+                    hor_boudary[1][1]=ymin
+    #display the boudaries on the map
+    #horizontal
+    cv2.line(line_image, (hor_boudary[0][0], hor_boudary[0][1]), (hor_boudary[1][0], hor_boudary[1][1]), (0, 128, 255), 5)
+    #verdical
+    cv2.line(line_image, (ver_boudary[0][0], ver_boudary[0][1]), (ver_boudary[1][0], ver_boudary[1][1]), (0, 255, 128), 5)
     return line_image
 
 lane_image = cv2.imread('./testImage/replay-tool.jpg')
@@ -44,7 +58,7 @@ lines = cv2.HoughLinesP(cropped_Image,rho, theta, threshold, np.array ([]), minL
 #Get the lines
 line_image = display_lines(lane_image, lines)
 #Display the minmap edges/boudaries in the original pic
-combo_image = cv2.addWeighted(lane_image, 0.8, line_image, 1, 1)
+combo_image = cv2.addWeighted(line_image, 0.8, lane_image, 1, 1)
 #showing the image
-plt.imshow(line_image)
-plt.show()
+cv2.imshow('result',combo_image)
+cv2.waitKey(0)
