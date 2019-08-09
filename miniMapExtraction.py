@@ -49,7 +49,7 @@ def display_lines(image, lines):
 
 lane_image = cv2.imread('./testImage/replay-tool.jpg')
 canny = CannyEdge(lane_image)
-print(canny.shape)
+
 '''
 cropped_Image = region_of_interest(canny)
 rho = 2
