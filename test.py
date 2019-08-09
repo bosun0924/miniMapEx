@@ -9,12 +9,15 @@ def CannyEdge(image):
 def region_of_interest(image): 
     #get the resolution of the image
     height, width = image.shape
+    #set up the map extracting area
+    map_height_limit = int(0.65*height)
+    map_width_limit = int(0.8*width)
     #set the cropping polygons
-    triangle = np.array([[(490, height),(490, 255),(width, 255),(width, height),]], np.int32)
+    crop_area = np.array([[(map_width_limit, height),(map_width_limit, map_height_limit),(width, map_height_limit),(width, height),]], np.int32)
     #set the background of the mask to 0
     mask = np.zeros_like(image)
     #get the mask done, the mask only allows minimap area to be further processed
-    cv2.fillPoly(mask, triangle, 255)
+    cv2.fillPoly(mask, crop_area, 255)
     masked_image = cv2.bitwise_and(image, mask)
     return masked_image
 
@@ -68,9 +71,10 @@ map_info = finding_minimap(image, lines)
 #Display the minmap edges/boudaries in the original pic
 combo_image = cv2.addWeighted(map_info, 0.8, image, 1, 1)
 #showing the image
-'''
+
 cv2.imshow('result',combo_image)
 cv2.waitKey(0)
 '''
-plt.imshow(combo_image)
+plt.imshow(cropped_Image)
 plt.show()
+'''
