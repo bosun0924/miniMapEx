@@ -2,8 +2,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 def CannyEdge(image):
-    #gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    gray = image[...,2]
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    #gray = image[...,2]
     blur = cv2.GaussianBlur(gray, (5,5), 0)
     cannyImage = cv2.Canny(blur, 50, 100)
     return cannyImage
@@ -13,7 +13,7 @@ def region_of_interest(image):
     height, width = image.shape
     #set up the map extracting area
     map_height_limit = int(0.7*height)
-    map_width_limit = int(0.85*width)
+    map_width_limit = int(0.82*width)
     #set the cropping polygons
     crop_area = np.array([[(map_width_limit, height),(map_width_limit, map_height_limit),(width, map_height_limit),(width, height),]], np.int32)
     #set the background of the mask to 0
@@ -65,9 +65,9 @@ def display_lines(image, lines):
             x1, y1, x2, y2 = line.reshape(4)
             cv2.line(line_image, (x1, y1), (x2, y2), (255, 0, 0), 1)
     return line_image
-
+'''
 #image = cv2.imread('./testImage/4.jpg')
-image = cv2.imread('./testImage/test4.png')
+image = cv2.imread('./testImage/5.png')
 image = cv2.resize(image,(800,450))
 canny = CannyEdge(image)#edge detection
 cropped_Image = region_of_interest(canny)#get the mini map area
@@ -88,10 +88,10 @@ combo_image = cv2.addWeighted(map_info, 0.8, image, 1, 1)
 #showing the image
 canny_cvt = cv2.cvtColor(canny,cv2.COLOR_GRAY2RGB)
 ana = cv2.addWeighted(canny_cvt, 0.8, hough, 1, 1)
-'''
+
 cv2.imshow('result',combo_image)
 cv2.waitKey(0)
-'''
+
 plt.figure()
 plt.imshow(image[...,1])
 
@@ -107,3 +107,23 @@ plt.imshow(ana)
 plt.figure()
 plt.imshow(combo_image)
 plt.show()
+'''
+cap = cv2.VideoCapture("./testImage/test.mp4")
+while(cap.isOpened()):
+    _, frame = cap.read()
+    frame = cv2.resize(frame,(800,450))
+    canny = CannyEdge(frame)
+    cropped_Image = region_of_interest(canny)
+    rho = 2
+    theta = np.pi/180
+    threshold = 100
+    lines = cv2.HoughLinesP(cropped_Image,rho, theta, threshold, np.array ([ ]), minLineLength=40, maxLineGap=5)
+    #line_image = display_lines(frame, lines)
+    map_info = finding_minimap(frame, lines)
+    combo_image = cv2.addWeighted(frame, 0.8, map_info, 1, 1)
+    cv2.imshow("Image", combo_image)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+cap.release()
+cv2.destroyAllWindows()
+#'''

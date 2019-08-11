@@ -24,18 +24,17 @@ def CannyEdge(image):
     return cannyImage
 
 def region_of_interest(image): 
-    '''
-    height = image.shape[0]
-    triangle = np.array([[(200, height),(550, 250),(1100, height),]], np.int32)
+    #get the resolution of the image
+    height, width = image.shape
+    #set up the map extracting area
+    map_height_limit = int(0.7*height)
+    map_width_limit = int(0.82*width)
+    #set the cropping polygons
+    crop_area = np.array([[(map_width_limit, height),(map_width_limit, map_height_limit),(width, map_height_limit),(width, height),]], np.int32)
+    #set the background of the mask to 0
     mask = np.zeros_like(image)
-    cv2.fillPoly(mask, triangle, 255)
-    masked_image = cv2.bitwise_and(image, mask)
-    return masked_image
-    '''
-    height, weight = image.shape()
-    triangle = np.array([[(200, height),(550, 250),(1100, height),]], np.int32)
-    mask = np.zeros_like(image)
-    cv2.fillPoly(mask, triangle, 255)
+    #get the mask done, the mask only allows minimap area to be further processed
+    cv2.fillPoly(mask, crop_area, 255)
     masked_image = cv2.bitwise_and(image, mask)
     return masked_image
 
@@ -60,13 +59,13 @@ line_image = display_lines(lane_image, lines)
 combo_image = cv2.addWeighted(lane_image, 0.8, line_image, 1, 1)
 #cv2.imshow('Lane Lines', combo_image)
 #cv2.waitKey(0)
-'''
+
 
 plt.imshow(canny)
 plt.show()
-
 '''
-cap = cv2.VideoCapture("test2.mp4")
+
+cap = cv2.VideoCapture("./testImage/test.mp4")
 while(cap.isOpened()):
     _, frame = cap.read()
     canny = CannyEdge(frame)
@@ -82,4 +81,3 @@ while(cap.isOpened()):
         break
 cap.release()
 cv2.destroyAllWindows()
-'''
