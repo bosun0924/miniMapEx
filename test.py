@@ -2,17 +2,18 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 def CannyEdge(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    #gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    gray = image[...,2]
     blur = cv2.GaussianBlur(gray, (5,5), 0)
-    cannyImage = cv2.Canny(blur, 50, 150)
+    cannyImage = cv2.Canny(blur, 50, 100)
     return cannyImage
 
 def region_of_interest(image): 
     #get the resolution of the image
     height, width = image.shape
     #set up the map extracting area
-    map_height_limit = int(0.6*height)
-    map_width_limit = int(0.82*width)
+    map_height_limit = int(0.7*height)
+    map_width_limit = int(0.85*width)
     #set the cropping polygons
     crop_area = np.array([[(map_width_limit, height),(map_width_limit, map_height_limit),(width, map_height_limit),(width, height),]], np.int32)
     #set the background of the mask to 0
@@ -35,12 +36,12 @@ def finding_minimap(image, lines):
         for line in lines:
             x1, y1, x2, y2 = line.reshape(4)
             #get verdical/horizontal lines in the mini map
-            if (abs(x1-x2)<2):#verdical boudary
+            if (abs(x1-x2)<3):#verdical boudary
                 xmin=min(x1,x2)
                 if (xmin<ver_boudary):
                     ver_boudary=xmin
                     mapcentre_x = int((xmin+x)/2)
-            if (abs(y1-y2)<2):#horizontal boudary
+            if (abs(y1-y2)<3):#horizontal boudary
                 ymin=min(y1,y2)
                 if (ymin<hor_boudary):
                     hor_boudary=ymin
@@ -65,8 +66,8 @@ def display_lines(image, lines):
             cv2.line(line_image, (x1, y1), (x2, y2), (255, 0, 0), 1)
     return line_image
 
-#image = cv2.imread('./testImage/replay-tool.jpg')
-image = cv2.imread('./testImage/5.png')
+#image = cv2.imread('./testImage/4.jpg')
+image = cv2.imread('./testImage/test4.png')
 image = cv2.resize(image,(800,450))
 canny = CannyEdge(image)#edge detection
 cropped_Image = region_of_interest(canny)#get the mini map area
@@ -92,6 +93,9 @@ cv2.imshow('result',combo_image)
 cv2.waitKey(0)
 '''
 plt.figure()
+plt.imshow(image[...,1])
+
+plt.figure()
 plt.imshow(cropped_Image)
 
 plt.figure()
@@ -99,9 +103,6 @@ plt.imshow(hough)
 
 plt.figure()
 plt.imshow(ana)
-
-plt.figure()
-plt.imshow(map_info)
 
 plt.figure()
 plt.imshow(combo_image)
